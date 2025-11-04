@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
+import bg from "@/assets/background_auth.png";
 
 export const SignInPage = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -11,10 +12,8 @@ export const SignInPage = () => {
         <div className="min-h-screen w-screen bg-white font-sans text-gray-900">
             <div className="grid min-h-screen w-full grid-cols-1 md:grid-cols-2">
                 {/* Cột bên trái (Hình ảnh) */}
-                <div className="relative hidden flex-col items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600 p-10 md:flex">
-                    <img />
-                    {/* Lớp phủ mờ */}
-                    <div className="absolute inset-0 bg-black/10"></div>
+                <div className="relative hidden flex-col items-center justify-center p-10 md:flex">
+                    <img src={bg} alt="Background" className="absolute inset-0 h-full w-full object-cover" />
                 </div>
 
                 {/* Cột bên phải (Form) */}
