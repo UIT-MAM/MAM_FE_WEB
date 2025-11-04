@@ -1,3 +1,4 @@
+import { SignInPage } from '@/pages/auth/SignInPage'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/auth/sign-in')({
@@ -5,5 +6,5 @@ export const Route = createFileRoute('/auth/sign-in')({
 })
 
 function RouteComponent() {
-  return <div>Hello "/auth/sign-in"!</div>
+  return <SignInPage />
 }
