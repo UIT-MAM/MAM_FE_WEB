@@ -9,25 +9,27 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   GetEnums200,
   GetEnumsParams
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -37,17 +39,18 @@ Available types: OTP_ACTION, ROLE_NAME, USER_STATUS, ORDER_STATUS, PAYMENT_METHO
  * @summary Get all enums
  */
 export const getEnums = (
-    params?: GetEnumsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GetEnums200>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/metadata`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetEnumsParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<GetEnums200>(
+      {url: `/api/v1/metadata`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -58,40 +61,64 @@ export const getGetEnumsQueryKey = (params?: GetEnumsParams,) => {
     }
 
     
-export const getGetEnumsQueryOptions = <TData = Awaited<ReturnType<typeof getEnums>>, TError = AxiosError<unknown>>(params?: GetEnumsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetEnumsQueryOptions = <TData = Awaited<ReturnType<typeof getEnums>>, TError = ErrorType<unknown>>(params?: GetEnumsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetEnumsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEnums>>> = ({ signal }) => getEnums(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEnums>>> = ({ signal }) => getEnums(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetEnumsQueryResult = NonNullable<Awaited<ReturnType<typeof getEnums>>>
-export type GetEnumsQueryError = AxiosError<unknown>
+export type GetEnumsQueryError = ErrorType<unknown>
 
 
+export function useGetEnums<TData = Awaited<ReturnType<typeof getEnums>>, TError = ErrorType<unknown>>(
+ params: undefined |  GetEnumsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEnums>>,
+          TError,
+          Awaited<ReturnType<typeof getEnums>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEnums<TData = Awaited<ReturnType<typeof getEnums>>, TError = ErrorType<unknown>>(
+ params?: GetEnumsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEnums>>,
+          TError,
+          Awaited<ReturnType<typeof getEnums>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEnums<TData = Awaited<ReturnType<typeof getEnums>>, TError = ErrorType<unknown>>(
+ params?: GetEnumsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get all enums
  */
 
-export function useGetEnums<TData = Awaited<ReturnType<typeof getEnums>>, TError = AxiosError<unknown>>(
- params?: GetEnumsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetEnums<TData = Awaited<ReturnType<typeof getEnums>>, TError = ErrorType<unknown>>(
+ params?: GetEnumsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEnums>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetEnumsQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

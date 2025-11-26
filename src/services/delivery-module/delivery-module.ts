@@ -10,23 +10,21 @@ import {
 } from '@tanstack/react-query';
 import type {
   MutationFunction,
+  QueryClient,
   UseMutationOptions,
   UseMutationResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   DeliveryRequestDTO,
   DeliveryResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -35,36 +33,39 @@ import type {
  * @summary Get delivery estimates
  */
 export const estimateTime = (
-    deliveryRequestDTO: DeliveryRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<DeliveryResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/delivery/estimate-time`,
-      deliveryRequestDTO,options
-    );
-  }
+    deliveryRequestDTO: BodyType<DeliveryRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<DeliveryResponseDTO>(
+      {url: `/api/v1/delivery/estimate-time`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: deliveryRequestDTO, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getEstimateTimeMutationOptions = <TError = AxiosError<DeliveryResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof estimateTime>>, TError,{data: DeliveryRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof estimateTime>>, TError,{data: DeliveryRequestDTO}, TContext> => {
+export const getEstimateTimeMutationOptions = <TError = ErrorType<DeliveryResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof estimateTime>>, TError,{data: BodyType<DeliveryRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof estimateTime>>, TError,{data: BodyType<DeliveryRequestDTO>}, TContext> => {
 
 const mutationKey = ['estimateTime'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof estimateTime>>, {data: DeliveryRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof estimateTime>>, {data: BodyType<DeliveryRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  estimateTime(data,axiosOptions)
+          return  estimateTime(data,requestOptions)
         }
 
         
@@ -73,23 +74,23 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type EstimateTimeMutationResult = NonNullable<Awaited<ReturnType<typeof estimateTime>>>
-    export type EstimateTimeMutationBody = DeliveryRequestDTO
-    export type EstimateTimeMutationError = AxiosError<DeliveryResponseDTO>
+    export type EstimateTimeMutationBody = BodyType<DeliveryRequestDTO>
+    export type EstimateTimeMutationError = ErrorType<DeliveryResponseDTO>
 
     /**
  * @summary Get delivery estimates
  */
-export const useEstimateTime = <TError = AxiosError<DeliveryResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof estimateTime>>, TError,{data: DeliveryRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useEstimateTime = <TError = ErrorType<DeliveryResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof estimateTime>>, TError,{data: BodyType<DeliveryRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof estimateTime>>,
         TError,
-        {data: DeliveryRequestDTO},
+        {data: BodyType<DeliveryRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getEstimateTimeMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     

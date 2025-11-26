@@ -9,25 +9,27 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
   GetImageStoragePathParams
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -36,18 +38,19 @@ import type {
  * @summary Get image resource by file URL
  */
 export const getImageStoragePath = (
-    params: GetImageStoragePathParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<Blob>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/storage/images`,{
-        responseType: 'blob',
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetImageStoragePathParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<Blob>(
+      {url: `/api/v1/storage/images`, method: 'GET',
+        params,
+        responseType: 'blob', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -58,40 +61,64 @@ export const getGetImageStoragePathQueryKey = (params?: GetImageStoragePathParam
     }
 
     
-export const getGetImageStoragePathQueryOptions = <TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = AxiosError<ErrorVO | Blob>>(params: GetImageStoragePathParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetImageStoragePathQueryOptions = <TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = ErrorType<ErrorVO | Blob>>(params: GetImageStoragePathParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetImageStoragePathQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImageStoragePath>>> = ({ signal }) => getImageStoragePath(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImageStoragePath>>> = ({ signal }) => getImageStoragePath(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetImageStoragePathQueryResult = NonNullable<Awaited<ReturnType<typeof getImageStoragePath>>>
-export type GetImageStoragePathQueryError = AxiosError<ErrorVO | Blob>
+export type GetImageStoragePathQueryError = ErrorType<ErrorVO | Blob>
 
 
+export function useGetImageStoragePath<TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = ErrorType<ErrorVO | Blob>>(
+ params: GetImageStoragePathParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImageStoragePath>>,
+          TError,
+          Awaited<ReturnType<typeof getImageStoragePath>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImageStoragePath<TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = ErrorType<ErrorVO | Blob>>(
+ params: GetImageStoragePathParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getImageStoragePath>>,
+          TError,
+          Awaited<ReturnType<typeof getImageStoragePath>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetImageStoragePath<TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = ErrorType<ErrorVO | Blob>>(
+ params: GetImageStoragePathParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get image resource by file URL
  */
 
-export function useGetImageStoragePath<TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = AxiosError<ErrorVO | Blob>>(
- params: GetImageStoragePathParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetImageStoragePath<TData = Awaited<ReturnType<typeof getImageStoragePath>>, TError = ErrorType<ErrorVO | Blob>>(
+ params: GetImageStoragePathParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getImageStoragePath>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetImageStoragePathQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

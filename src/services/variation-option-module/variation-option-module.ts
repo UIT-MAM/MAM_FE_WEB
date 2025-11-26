@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -34,7 +32,11 @@ import type {
   VariationOptionResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -44,36 +46,38 @@ import type {
  */
 export const update = (
     id: number,
-    variationOptionRequestDTO: VariationOptionRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<VariationOptionResponseDTO>> => {
-    
-    
-    return axios.default.put(
-      `/api/v1/variation-options/${id}`,
-      variationOptionRequestDTO,options
-    );
-  }
+    variationOptionRequestDTO: BodyType<VariationOptionRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<VariationOptionResponseDTO>(
+      {url: `/api/v1/variation-options/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: variationOptionRequestDTO
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: VariationOptionRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: VariationOptionRequestDTO}, TContext> => {
+export const getUpdateMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: BodyType<VariationOptionRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: BodyType<VariationOptionRequestDTO>}, TContext> => {
 
 const mutationKey = ['update'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof update>>, {id: number;data: VariationOptionRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof update>>, {id: number;data: BodyType<VariationOptionRequestDTO>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  update(id,data,axiosOptions)
+          return  update(id,data,requestOptions)
         }
 
         
@@ -82,51 +86,52 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateMutationResult = NonNullable<Awaited<ReturnType<typeof update>>>
-    export type UpdateMutationBody = VariationOptionRequestDTO
-    export type UpdateMutationError = AxiosError<ErrorVO>
+    export type UpdateMutationBody = BodyType<VariationOptionRequestDTO>
+    export type UpdateMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Update a variation option
  */
-export const useUpdate = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: VariationOptionRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useUpdate = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update>>, TError,{id: number;data: BodyType<VariationOptionRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update>>,
         TError,
-        {id: number;data: VariationOptionRequestDTO},
+        {id: number;data: BodyType<VariationOptionRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getUpdateMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Delete a variation option by its ID (Admin only)
  * @summary Delete a variation option
  */
 export const _delete = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.delete(
-      `/api/v1/variation-options/${id}`,options
-    );
-  }
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/variation-options/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteMutationOptions = <TError = AxiosError<ErrorVO | void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteMutationOptions = <TError = ErrorType<ErrorVO | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext> => {
 
 const mutationKey = ['_delete'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -134,7 +139,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof _delete>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  _delete(id,axiosOptions)
+          return  _delete(id,requestOptions)
         }
 
         
@@ -144,14 +149,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type _DeleteMutationResult = NonNullable<Awaited<ReturnType<typeof _delete>>>
     
-    export type _DeleteMutationError = AxiosError<ErrorVO | void>
+    export type _DeleteMutationError = ErrorType<ErrorVO | void>
 
     /**
  * @summary Delete a variation option
  */
-export const useDelete = <TError = AxiosError<ErrorVO | void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useDelete = <TError = ErrorType<ErrorVO | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof _delete>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof _delete>>,
         TError,
         {id: number},
@@ -160,24 +165,25 @@ export const useDelete = <TError = AxiosError<ErrorVO | void>,
 
       const mutationOptions = getDeleteMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Retrieve all variation options associated with a specific variation
  * @summary Get variation options by variation ID
  */
 export const getByVariationId = (
-    params: GetByVariationIdParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/variation-options`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetByVariationIdParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVO>(
+      {url: `/api/v1/variation-options`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -188,40 +194,64 @@ export const getGetByVariationIdQueryKey = (params?: GetByVariationIdParams,) =>
     }
 
     
-export const getGetByVariationIdQueryOptions = <TData = Awaited<ReturnType<typeof getByVariationId>>, TError = AxiosError<ErrorVO>>(params: GetByVariationIdParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetByVariationIdQueryOptions = <TData = Awaited<ReturnType<typeof getByVariationId>>, TError = ErrorType<ErrorVO>>(params: GetByVariationIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetByVariationIdQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getByVariationId>>> = ({ signal }) => getByVariationId(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getByVariationId>>> = ({ signal }) => getByVariationId(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetByVariationIdQueryResult = NonNullable<Awaited<ReturnType<typeof getByVariationId>>>
-export type GetByVariationIdQueryError = AxiosError<ErrorVO>
+export type GetByVariationIdQueryError = ErrorType<ErrorVO>
 
 
+export function useGetByVariationId<TData = Awaited<ReturnType<typeof getByVariationId>>, TError = ErrorType<ErrorVO>>(
+ params: GetByVariationIdParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getByVariationId>>,
+          TError,
+          Awaited<ReturnType<typeof getByVariationId>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetByVariationId<TData = Awaited<ReturnType<typeof getByVariationId>>, TError = ErrorType<ErrorVO>>(
+ params: GetByVariationIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getByVariationId>>,
+          TError,
+          Awaited<ReturnType<typeof getByVariationId>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetByVariationId<TData = Awaited<ReturnType<typeof getByVariationId>>, TError = ErrorType<ErrorVO>>(
+ params: GetByVariationIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get variation options by variation ID
  */
 
-export function useGetByVariationId<TData = Awaited<ReturnType<typeof getByVariationId>>, TError = AxiosError<ErrorVO>>(
- params: GetByVariationIdParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetByVariationId<TData = Awaited<ReturnType<typeof getByVariationId>>, TError = ErrorType<ErrorVO>>(
+ params: GetByVariationIdParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getByVariationId>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetByVariationIdQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -236,36 +266,39 @@ export function useGetByVariationId<TData = Awaited<ReturnType<typeof getByVaria
  * @summary Create a variation option
  */
 export const create = (
-    variationOptionRequestDTO: VariationOptionRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<VariationOptionResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/variation-options`,
-      variationOptionRequestDTO,options
-    );
-  }
+    variationOptionRequestDTO: BodyType<VariationOptionRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<VariationOptionResponseDTO>(
+      {url: `/api/v1/variation-options`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: variationOptionRequestDTO, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: VariationOptionRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: VariationOptionRequestDTO}, TContext> => {
+export const getCreateMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: BodyType<VariationOptionRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: BodyType<VariationOptionRequestDTO>}, TContext> => {
 
 const mutationKey = ['create'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof create>>, {data: VariationOptionRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof create>>, {data: BodyType<VariationOptionRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  create(data,axiosOptions)
+          return  create(data,requestOptions)
         }
 
         
@@ -274,23 +307,23 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateMutationResult = NonNullable<Awaited<ReturnType<typeof create>>>
-    export type CreateMutationBody = VariationOptionRequestDTO
-    export type CreateMutationError = AxiosError<ErrorVO>
+    export type CreateMutationBody = BodyType<VariationOptionRequestDTO>
+    export type CreateMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Create a variation option
  */
-export const useCreate = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: VariationOptionRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreate = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create>>, TError,{data: BodyType<VariationOptionRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create>>,
         TError,
-        {data: VariationOptionRequestDTO},
+        {data: BodyType<VariationOptionRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getCreateMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     

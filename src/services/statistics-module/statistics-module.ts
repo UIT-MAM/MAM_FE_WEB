@@ -9,18 +9,16 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -33,7 +31,11 @@ import type {
   RevenueStatsResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -42,15 +44,17 @@ import type {
  * @summary Get total order count for statuses: PENDING, CONFIRMED, PROCESSING
  */
 export const getActiveOrderCountByStatus = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GetActiveOrderCountByStatus200>> => {
     
-    
-    return axios.default.get(
-      `/api/v1/stats/total-order-count-by-status/active`,options
-    );
-  }
-
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<GetActiveOrderCountByStatus200>(
+      {url: `/api/v1/stats/total-order-count-by-status/active`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -61,40 +65,64 @@ export const getGetActiveOrderCountByStatusQueryKey = () => {
     }
 
     
-export const getGetActiveOrderCountByStatusQueryOptions = <TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = AxiosError<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetActiveOrderCountByStatusQueryOptions = <TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetActiveOrderCountByStatusQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>> = ({ signal }) => getActiveOrderCountByStatus({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>> = ({ signal }) => getActiveOrderCountByStatus(requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetActiveOrderCountByStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>>
-export type GetActiveOrderCountByStatusQueryError = AxiosError<unknown>
+export type GetActiveOrderCountByStatusQueryError = ErrorType<unknown>
 
 
+export function useGetActiveOrderCountByStatus<TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getActiveOrderCountByStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getActiveOrderCountByStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetActiveOrderCountByStatus<TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getActiveOrderCountByStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getActiveOrderCountByStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetActiveOrderCountByStatus<TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get total order count for statuses: PENDING, CONFIRMED, PROCESSING
  */
 
-export function useGetActiveOrderCountByStatus<TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = AxiosError<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetActiveOrderCountByStatus<TData = Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getActiveOrderCountByStatus>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetActiveOrderCountByStatusQueryOptions(options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -109,17 +137,18 @@ export function useGetActiveOrderCountByStatus<TData = Awaited<ReturnType<typeof
  * @summary Get revenue statistics
  */
 export const getRevenueStats = (
-    params?: GetRevenueStatsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<RevenueStatsResponseDTO[]>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/stats/revenue`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetRevenueStatsParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<RevenueStatsResponseDTO[]>(
+      {url: `/api/v1/stats/revenue`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -130,40 +159,64 @@ export const getGetRevenueStatsQueryKey = (params?: GetRevenueStatsParams,) => {
     }
 
     
-export const getGetRevenueStatsQueryOptions = <TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = AxiosError<ErrorVO>>(params?: GetRevenueStatsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetRevenueStatsQueryOptions = <TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = ErrorType<ErrorVO>>(params?: GetRevenueStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetRevenueStatsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRevenueStats>>> = ({ signal }) => getRevenueStats(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRevenueStats>>> = ({ signal }) => getRevenueStats(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetRevenueStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getRevenueStats>>>
-export type GetRevenueStatsQueryError = AxiosError<ErrorVO>
+export type GetRevenueStatsQueryError = ErrorType<ErrorVO>
 
 
+export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = ErrorType<ErrorVO>>(
+ params: undefined |  GetRevenueStatsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRevenueStats>>,
+          TError,
+          Awaited<ReturnType<typeof getRevenueStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = ErrorType<ErrorVO>>(
+ params?: GetRevenueStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRevenueStats>>,
+          TError,
+          Awaited<ReturnType<typeof getRevenueStats>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = ErrorType<ErrorVO>>(
+ params?: GetRevenueStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get revenue statistics
  */
 
-export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = AxiosError<ErrorVO>>(
- params?: GetRevenueStatsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueStats>>, TError = ErrorType<ErrorVO>>(
+ params?: GetRevenueStatsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStats>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetRevenueStatsQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -178,17 +231,18 @@ export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueS
  * @summary Get revenue statistics by month or quarter of the year
  */
 export const getRevenueStatsForMonthOrQuarter = (
-    params: GetRevenueStatsForMonthOrQuarterParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GetRevenueStatsForMonthOrQuarter200>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/stats/revenue/month-or-quarter`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetRevenueStatsForMonthOrQuarterParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<GetRevenueStatsForMonthOrQuarter200>(
+      {url: `/api/v1/stats/revenue/month-or-quarter`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -199,40 +253,64 @@ export const getGetRevenueStatsForMonthOrQuarterQueryKey = (params?: GetRevenueS
     }
 
     
-export const getGetRevenueStatsForMonthOrQuarterQueryOptions = <TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = AxiosError<unknown>>(params: GetRevenueStatsForMonthOrQuarterParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetRevenueStatsForMonthOrQuarterQueryOptions = <TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = ErrorType<unknown>>(params: GetRevenueStatsForMonthOrQuarterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetRevenueStatsForMonthOrQuarterQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>> = ({ signal }) => getRevenueStatsForMonthOrQuarter(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>> = ({ signal }) => getRevenueStatsForMonthOrQuarter(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetRevenueStatsForMonthOrQuarterQueryResult = NonNullable<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>>
-export type GetRevenueStatsForMonthOrQuarterQueryError = AxiosError<unknown>
+export type GetRevenueStatsForMonthOrQuarterQueryError = ErrorType<unknown>
 
 
+export function useGetRevenueStatsForMonthOrQuarter<TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = ErrorType<unknown>>(
+ params: GetRevenueStatsForMonthOrQuarterParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>,
+          TError,
+          Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRevenueStatsForMonthOrQuarter<TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = ErrorType<unknown>>(
+ params: GetRevenueStatsForMonthOrQuarterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>,
+          TError,
+          Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRevenueStatsForMonthOrQuarter<TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = ErrorType<unknown>>(
+ params: GetRevenueStatsForMonthOrQuarterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get revenue statistics by month or quarter of the year
  */
 
-export function useGetRevenueStatsForMonthOrQuarter<TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = AxiosError<unknown>>(
- params: GetRevenueStatsForMonthOrQuarterParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetRevenueStatsForMonthOrQuarter<TData = Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError = ErrorType<unknown>>(
+ params: GetRevenueStatsForMonthOrQuarterParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRevenueStatsForMonthOrQuarter>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetRevenueStatsForMonthOrQuarterQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -247,17 +325,18 @@ export function useGetRevenueStatsForMonthOrQuarter<TData = Awaited<ReturnType<t
  * @summary Get revenue statistics by year
  */
 export const getSoldByCategory = (
-    params: GetSoldByCategoryParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<GetSoldByCategory200>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/stats/get-sold-by-category`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetSoldByCategoryParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<GetSoldByCategory200>(
+      {url: `/api/v1/stats/get-sold-by-category`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -268,40 +347,64 @@ export const getGetSoldByCategoryQueryKey = (params?: GetSoldByCategoryParams,) 
     }
 
     
-export const getGetSoldByCategoryQueryOptions = <TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = AxiosError<unknown>>(params: GetSoldByCategoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetSoldByCategoryQueryOptions = <TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = ErrorType<unknown>>(params: GetSoldByCategoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetSoldByCategoryQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSoldByCategory>>> = ({ signal }) => getSoldByCategory(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSoldByCategory>>> = ({ signal }) => getSoldByCategory(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetSoldByCategoryQueryResult = NonNullable<Awaited<ReturnType<typeof getSoldByCategory>>>
-export type GetSoldByCategoryQueryError = AxiosError<unknown>
+export type GetSoldByCategoryQueryError = ErrorType<unknown>
 
 
+export function useGetSoldByCategory<TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = ErrorType<unknown>>(
+ params: GetSoldByCategoryParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSoldByCategory>>,
+          TError,
+          Awaited<ReturnType<typeof getSoldByCategory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSoldByCategory<TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = ErrorType<unknown>>(
+ params: GetSoldByCategoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getSoldByCategory>>,
+          TError,
+          Awaited<ReturnType<typeof getSoldByCategory>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetSoldByCategory<TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = ErrorType<unknown>>(
+ params: GetSoldByCategoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get revenue statistics by year
  */
 
-export function useGetSoldByCategory<TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = AxiosError<unknown>>(
- params: GetSoldByCategoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetSoldByCategory<TData = Awaited<ReturnType<typeof getSoldByCategory>>, TError = ErrorType<unknown>>(
+ params: GetSoldByCategoryParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getSoldByCategory>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetSoldByCategoryQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

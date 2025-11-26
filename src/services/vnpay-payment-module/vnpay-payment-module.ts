@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -32,7 +30,11 @@ import type {
   VnPayRequestDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -41,37 +43,39 @@ import type {
  * @summary Create VnPay payment
  */
 export const createPayment = (
-    vnPayRequestDTO: VnPayRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<string>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/payment/create-payment`,
-      vnPayRequestDTO,{
-    ...options,}
-    );
-  }
+    vnPayRequestDTO: BodyType<VnPayRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<string>(
+      {url: `/api/v1/payment/create-payment`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: vnPayRequestDTO, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreatePaymentMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPayment>>, TError,{data: VnPayRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createPayment>>, TError,{data: VnPayRequestDTO}, TContext> => {
+export const getCreatePaymentMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPayment>>, TError,{data: BodyType<VnPayRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPayment>>, TError,{data: BodyType<VnPayRequestDTO>}, TContext> => {
 
 const mutationKey = ['createPayment'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPayment>>, {data: VnPayRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPayment>>, {data: BodyType<VnPayRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createPayment(data,axiosOptions)
+          return  createPayment(data,requestOptions)
         }
 
         
@@ -80,40 +84,41 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreatePaymentMutationResult = NonNullable<Awaited<ReturnType<typeof createPayment>>>
-    export type CreatePaymentMutationBody = VnPayRequestDTO
-    export type CreatePaymentMutationError = AxiosError<ErrorVO>
+    export type CreatePaymentMutationBody = BodyType<VnPayRequestDTO>
+    export type CreatePaymentMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Create VnPay payment
  */
-export const useCreatePayment = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPayment>>, TError,{data: VnPayRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreatePayment = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPayment>>, TError,{data: BodyType<VnPayRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createPayment>>,
         TError,
-        {data: VnPayRequestDTO},
+        {data: BodyType<VnPayRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getCreatePaymentMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Handle return callback from VnPay after user completes payment
  * @summary Handle VNPAY return
  */
 export const handleReturn = (
-     options?: AxiosRequestConfig
- ): Promise<AxiosResponse<string>> => {
     
-    
-    return axios.default.get(
-      `/api/v1/payment/return`,{
-    ...options,}
-    );
-  }
-
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<string>(
+      {url: `/api/v1/payment/return`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -124,40 +129,64 @@ export const getHandleReturnQueryKey = () => {
     }
 
     
-export const getHandleReturnQueryOptions = <TData = Awaited<ReturnType<typeof handleReturn>>, TError = AxiosError<ErrorVO | RedirectView>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getHandleReturnQueryOptions = <TData = Awaited<ReturnType<typeof handleReturn>>, TError = ErrorType<ErrorVO | RedirectView>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getHandleReturnQueryKey();
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof handleReturn>>> = ({ signal }) => handleReturn({ signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof handleReturn>>> = ({ signal }) => handleReturn(requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type HandleReturnQueryResult = NonNullable<Awaited<ReturnType<typeof handleReturn>>>
-export type HandleReturnQueryError = AxiosError<ErrorVO | RedirectView>
+export type HandleReturnQueryError = ErrorType<ErrorVO | RedirectView>
 
 
+export function useHandleReturn<TData = Awaited<ReturnType<typeof handleReturn>>, TError = ErrorType<ErrorVO | RedirectView>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof handleReturn>>,
+          TError,
+          Awaited<ReturnType<typeof handleReturn>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useHandleReturn<TData = Awaited<ReturnType<typeof handleReturn>>, TError = ErrorType<ErrorVO | RedirectView>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof handleReturn>>,
+          TError,
+          Awaited<ReturnType<typeof handleReturn>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useHandleReturn<TData = Awaited<ReturnType<typeof handleReturn>>, TError = ErrorType<ErrorVO | RedirectView>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Handle VNPAY return
  */
 
-export function useHandleReturn<TData = Awaited<ReturnType<typeof handleReturn>>, TError = AxiosError<ErrorVO | RedirectView>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useHandleReturn<TData = Awaited<ReturnType<typeof handleReturn>>, TError = ErrorType<ErrorVO | RedirectView>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof handleReturn>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getHandleReturnQueryOptions(options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

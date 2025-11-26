@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   CategoryRequestDTO,
@@ -34,7 +32,11 @@ import type {
   PageVOCategoryResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -43,15 +45,17 @@ import type {
  * @summary Get product category by ID
  */
 export const getProductCategoryById = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CategoryResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/product-categories/${id}`,options
-    );
-  }
-
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<CategoryResponseDTO>(
+      {url: `/api/v1/product-categories/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -62,40 +66,64 @@ export const getGetProductCategoryByIdQueryKey = (id?: number,) => {
     }
 
     
-export const getGetProductCategoryByIdQueryOptions = <TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = AxiosError<ErrorVO>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetProductCategoryByIdQueryOptions = <TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = ErrorType<ErrorVO>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetProductCategoryByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductCategoryById>>> = ({ signal }) => getProductCategoryById(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductCategoryById>>> = ({ signal }) => getProductCategoryById(id, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetProductCategoryByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getProductCategoryById>>>
-export type GetProductCategoryByIdQueryError = AxiosError<ErrorVO>
+export type GetProductCategoryByIdQueryError = ErrorType<ErrorVO>
 
 
+export function useGetProductCategoryById<TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductCategoryById>>,
+          TError,
+          Awaited<ReturnType<typeof getProductCategoryById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductCategoryById<TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getProductCategoryById>>,
+          TError,
+          Awaited<ReturnType<typeof getProductCategoryById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetProductCategoryById<TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get product category by ID
  */
 
-export function useGetProductCategoryById<TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = AxiosError<ErrorVO>>(
- id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetProductCategoryById<TData = Awaited<ReturnType<typeof getProductCategoryById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getProductCategoryById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetProductCategoryByIdQueryOptions(id,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -111,10 +139,10 @@ export function useGetProductCategoryById<TData = Awaited<ReturnType<typeof getP
  */
 export const updateProductCategory = (
     id: number,
-    categoryRequestDTO: CategoryRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CategoryResponseDTO>> => {
-    
-    const formData = new FormData();
+    categoryRequestDTO: BodyType<CategoryRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      const formData = new FormData();
 formData.append(`name`, categoryRequestDTO.name)
 if(categoryRequestDTO.description !== undefined) {
  formData.append(`description`, categoryRequestDTO.description)
@@ -123,32 +151,34 @@ if(categoryRequestDTO.image !== undefined) {
  formData.append(`image`, categoryRequestDTO.image)
  }
 
-    return axios.default.put(
-      `/api/v1/product-categories/${id}`,
-      formData,options
-    );
-  }
+      return axiosInstanceFn<CategoryResponseDTO>(
+      {url: `/api/v1/product-categories/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateProductCategoryMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{id: number;data: CategoryRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{id: number;data: CategoryRequestDTO}, TContext> => {
+export const getUpdateProductCategoryMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{id: number;data: BodyType<CategoryRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{id: number;data: BodyType<CategoryRequestDTO>}, TContext> => {
 
 const mutationKey = ['updateProductCategory'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductCategory>>, {id: number;data: CategoryRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductCategory>>, {id: number;data: BodyType<CategoryRequestDTO>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateProductCategory(id,data,axiosOptions)
+          return  updateProductCategory(id,data,requestOptions)
         }
 
         
@@ -157,51 +187,52 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateProductCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductCategory>>>
-    export type UpdateProductCategoryMutationBody = CategoryRequestDTO
-    export type UpdateProductCategoryMutationError = AxiosError<ErrorVO>
+    export type UpdateProductCategoryMutationBody = BodyType<CategoryRequestDTO>
+    export type UpdateProductCategoryMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Update a product category
  */
-export const useUpdateProductCategory = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{id: number;data: CategoryRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useUpdateProductCategory = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{id: number;data: BodyType<CategoryRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateProductCategory>>,
         TError,
-        {id: number;data: CategoryRequestDTO},
+        {id: number;data: BodyType<CategoryRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getUpdateProductCategoryMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Delete a product category by its ID.
  * @summary Delete a product category
  */
 export const deleteProductCategory = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.delete(
-      `/api/v1/product-categories/${id}`,options
-    );
-  }
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/product-categories/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteProductCategoryMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteProductCategoryMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{id: number}, TContext> => {
 
 const mutationKey = ['deleteProductCategory'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -209,7 +240,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteProductCategory>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteProductCategory(id,axiosOptions)
+          return  deleteProductCategory(id,requestOptions)
         }
 
         
@@ -219,14 +250,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteProductCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProductCategory>>>
     
-    export type DeleteProductCategoryMutationError = AxiosError<ErrorVO>
+    export type DeleteProductCategoryMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Delete a product category
  */
-export const useDeleteProductCategory = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useDeleteProductCategory = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteProductCategory>>,
         TError,
         {id: number},
@@ -235,24 +266,25 @@ export const useDeleteProductCategory = <TError = AxiosError<ErrorVO>,
 
       const mutationOptions = getDeleteProductCategoryMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Retrieve a list of all product categories.
  * @summary Get all product categories
  */
 export const getAllProductCategories = (
-    params: GetAllProductCategoriesParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVOCategoryResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/product-categories`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetAllProductCategoriesParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVOCategoryResponseDTO>(
+      {url: `/api/v1/product-categories`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -263,40 +295,64 @@ export const getGetAllProductCategoriesQueryKey = (params?: GetAllProductCategor
     }
 
     
-export const getGetAllProductCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = AxiosError<ErrorVO>>(params: GetAllProductCategoriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAllProductCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = ErrorType<ErrorVO>>(params: GetAllProductCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllProductCategoriesQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllProductCategories>>> = ({ signal }) => getAllProductCategories(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllProductCategories>>> = ({ signal }) => getAllProductCategories(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAllProductCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllProductCategories>>>
-export type GetAllProductCategoriesQueryError = AxiosError<ErrorVO>
+export type GetAllProductCategoriesQueryError = ErrorType<ErrorVO>
 
 
+export function useGetAllProductCategories<TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllProductCategoriesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllProductCategories>>,
+          TError,
+          Awaited<ReturnType<typeof getAllProductCategories>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllProductCategories<TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllProductCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllProductCategories>>,
+          TError,
+          Awaited<ReturnType<typeof getAllProductCategories>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllProductCategories<TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllProductCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get all product categories
  */
 
-export function useGetAllProductCategories<TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = AxiosError<ErrorVO>>(
- params: GetAllProductCategoriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAllProductCategories<TData = Awaited<ReturnType<typeof getAllProductCategories>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllProductCategoriesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllProductCategories>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAllProductCategoriesQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -311,10 +367,11 @@ export function useGetAllProductCategories<TData = Awaited<ReturnType<typeof get
  * @summary Create a new product category
  */
 export const createProductCategory = (
-    categoryRequestDTO: CategoryRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<CategoryResponseDTO>> => {
-    
-    const formData = new FormData();
+    categoryRequestDTO: BodyType<CategoryRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      const formData = new FormData();
 formData.append(`name`, categoryRequestDTO.name)
 if(categoryRequestDTO.description !== undefined) {
  formData.append(`description`, categoryRequestDTO.description)
@@ -323,32 +380,34 @@ if(categoryRequestDTO.image !== undefined) {
  formData.append(`image`, categoryRequestDTO.image)
  }
 
-    return axios.default.post(
-      `/api/v1/product-categories`,
-      formData,options
-    );
-  }
+      return axiosInstanceFn<CategoryResponseDTO>(
+      {url: `/api/v1/product-categories`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateProductCategoryMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProductCategory>>, TError,{data: CategoryRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createProductCategory>>, TError,{data: CategoryRequestDTO}, TContext> => {
+export const getCreateProductCategoryMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProductCategory>>, TError,{data: BodyType<CategoryRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof createProductCategory>>, TError,{data: BodyType<CategoryRequestDTO>}, TContext> => {
 
 const mutationKey = ['createProductCategory'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createProductCategory>>, {data: CategoryRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createProductCategory>>, {data: BodyType<CategoryRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createProductCategory(data,axiosOptions)
+          return  createProductCategory(data,requestOptions)
         }
 
         
@@ -357,23 +416,23 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateProductCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createProductCategory>>>
-    export type CreateProductCategoryMutationBody = CategoryRequestDTO
-    export type CreateProductCategoryMutationError = AxiosError<ErrorVO>
+    export type CreateProductCategoryMutationBody = BodyType<CategoryRequestDTO>
+    export type CreateProductCategoryMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Create a new product category
  */
-export const useCreateProductCategory = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProductCategory>>, TError,{data: CategoryRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreateProductCategory = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createProductCategory>>, TError,{data: BodyType<CategoryRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createProductCategory>>,
         TError,
-        {data: CategoryRequestDTO},
+        {data: BodyType<CategoryRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getCreateProductCategoryMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     

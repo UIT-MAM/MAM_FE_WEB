@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -37,7 +35,11 @@ import type {
   UpdateStatus1Params
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -46,28 +48,28 @@ import type {
  * @summary Mark an order as delivered
  */
 export const markOrderAsDelivered = (
-    orderId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<string>> => {
-    
-    
-    return axios.default.put(
-      `/api/v1/orders/${orderId}/delivered`,undefined,{
-    ...options,}
-    );
-  }
+    orderId: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<string>(
+      {url: `/api/v1/orders/${orderId}/delivered`, method: 'PUT'
+    },
+      options);
+    }
+  
 
 
-
-export const getMarkOrderAsDeliveredMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markOrderAsDelivered>>, TError,{orderId: number}, TContext>, axios?: AxiosRequestConfig}
+export const getMarkOrderAsDeliveredMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markOrderAsDelivered>>, TError,{orderId: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof markOrderAsDelivered>>, TError,{orderId: number}, TContext> => {
 
 const mutationKey = ['markOrderAsDelivered'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -75,7 +77,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof markOrderAsDelivered>>, {orderId: number}> = (props) => {
           const {orderId} = props ?? {};
 
-          return  markOrderAsDelivered(orderId,axiosOptions)
+          return  markOrderAsDelivered(orderId,requestOptions)
         }
 
         
@@ -85,14 +87,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type MarkOrderAsDeliveredMutationResult = NonNullable<Awaited<ReturnType<typeof markOrderAsDelivered>>>
     
-    export type MarkOrderAsDeliveredMutationError = AxiosError<ErrorVO>
+    export type MarkOrderAsDeliveredMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Mark an order as delivered
  */
-export const useMarkOrderAsDelivered = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markOrderAsDelivered>>, TError,{orderId: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useMarkOrderAsDelivered = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markOrderAsDelivered>>, TError,{orderId: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof markOrderAsDelivered>>,
         TError,
         {orderId: number},
@@ -101,7 +103,7 @@ export const useMarkOrderAsDelivered = <TError = AxiosError<ErrorVO>,
 
       const mutationOptions = getMarkOrderAsDeliveredMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Update the order data by its ID
@@ -109,36 +111,38 @@ export const useMarkOrderAsDelivered = <TError = AxiosError<ErrorVO>,
  */
 export const updateOrder = (
     id: number,
-    orderRequestDTO: OrderRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<OrderResponseDTO>> => {
-    
-    
-    return axios.default.put(
-      `/api/v1/orders/update/${id}`,
-      orderRequestDTO,options
-    );
-  }
+    orderRequestDTO: BodyType<OrderRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<OrderResponseDTO>(
+      {url: `/api/v1/orders/update/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: orderRequestDTO
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateOrderMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;data: OrderRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;data: OrderRequestDTO}, TContext> => {
+export const getUpdateOrderMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;data: BodyType<OrderRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;data: BodyType<OrderRequestDTO>}, TContext> => {
 
 const mutationKey = ['updateOrder'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOrder>>, {id: number;data: OrderRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateOrder>>, {id: number;data: BodyType<OrderRequestDTO>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateOrder(id,data,axiosOptions)
+          return  updateOrder(id,data,requestOptions)
         }
 
         
@@ -147,60 +151,63 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateOrderMutationResult = NonNullable<Awaited<ReturnType<typeof updateOrder>>>
-    export type UpdateOrderMutationBody = OrderRequestDTO
-    export type UpdateOrderMutationError = AxiosError<ErrorVO>
+    export type UpdateOrderMutationBody = BodyType<OrderRequestDTO>
+    export type UpdateOrderMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Update an order
  */
-export const useUpdateOrder = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;data: OrderRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useUpdateOrder = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateOrder>>, TError,{id: number;data: BodyType<OrderRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateOrder>>,
         TError,
-        {id: number;data: OrderRequestDTO},
+        {id: number;data: BodyType<OrderRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getUpdateOrderMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Create a new order from cart or manual input
  * @summary Create a new order
  */
 export const createOrder = (
-    orderRequestDTO: OrderRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<OrderResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/orders/create`,
-      orderRequestDTO,options
-    );
-  }
+    orderRequestDTO: BodyType<OrderRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<OrderResponseDTO>(
+      {url: `/api/v1/orders/create`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: orderRequestDTO, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateOrderMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError,{data: OrderRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError,{data: OrderRequestDTO}, TContext> => {
+export const getCreateOrderMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError,{data: BodyType<OrderRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError,{data: BodyType<OrderRequestDTO>}, TContext> => {
 
 const mutationKey = ['createOrder'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOrder>>, {data: OrderRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createOrder>>, {data: BodyType<OrderRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createOrder(data,axiosOptions)
+          return  createOrder(data,requestOptions)
         }
 
         
@@ -209,51 +216,53 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateOrderMutationResult = NonNullable<Awaited<ReturnType<typeof createOrder>>>
-    export type CreateOrderMutationBody = OrderRequestDTO
-    export type CreateOrderMutationError = AxiosError<ErrorVO>
+    export type CreateOrderMutationBody = BodyType<OrderRequestDTO>
+    export type CreateOrderMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Create a new order
  */
-export const useCreateOrder = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError,{data: OrderRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreateOrder = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createOrder>>, TError,{data: BodyType<OrderRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createOrder>>,
         TError,
-        {data: OrderRequestDTO},
+        {data: BodyType<OrderRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getCreateOrderMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Cancel an order by its ID
  * @summary Cancel an order
  */
 export const cancelOrder = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/orders/cancel/${id}`,undefined,options
-    );
-  }
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/orders/cancel/${id}`, method: 'POST', signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCancelOrderMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelOrder>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getCancelOrderMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelOrder>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof cancelOrder>>, TError,{id: number}, TContext> => {
 
 const mutationKey = ['cancelOrder'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -261,7 +270,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelOrder>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  cancelOrder(id,axiosOptions)
+          return  cancelOrder(id,requestOptions)
         }
 
         
@@ -271,14 +280,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type CancelOrderMutationResult = NonNullable<Awaited<ReturnType<typeof cancelOrder>>>
     
-    export type CancelOrderMutationError = AxiosError<ErrorVO>
+    export type CancelOrderMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Cancel an order
  */
-export const useCancelOrder = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelOrder>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCancelOrder = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelOrder>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof cancelOrder>>,
         TError,
         {id: number},
@@ -287,24 +296,25 @@ export const useCancelOrder = <TError = AxiosError<ErrorVO>,
 
       const mutationOptions = getCancelOrderMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Retrieve a paginated list of orders with optional filters
  * @summary Get all orders with filtering and pagination
  */
 export const getAllOrders = (
-    params: GetAllOrdersParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVOOrderResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/orders`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetAllOrdersParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVOOrderResponseDTO>(
+      {url: `/api/v1/orders`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -315,40 +325,64 @@ export const getGetAllOrdersQueryKey = (params?: GetAllOrdersParams,) => {
     }
 
     
-export const getGetAllOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getAllOrders>>, TError = AxiosError<ErrorVO>>(params: GetAllOrdersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAllOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getAllOrders>>, TError = ErrorType<ErrorVO>>(params: GetAllOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllOrdersQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllOrders>>> = ({ signal }) => getAllOrders(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllOrders>>> = ({ signal }) => getAllOrders(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAllOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof getAllOrders>>>
-export type GetAllOrdersQueryError = AxiosError<ErrorVO>
+export type GetAllOrdersQueryError = ErrorType<ErrorVO>
 
 
+export function useGetAllOrders<TData = Awaited<ReturnType<typeof getAllOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllOrders>>,
+          TError,
+          Awaited<ReturnType<typeof getAllOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllOrders<TData = Awaited<ReturnType<typeof getAllOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllOrders>>,
+          TError,
+          Awaited<ReturnType<typeof getAllOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllOrders<TData = Awaited<ReturnType<typeof getAllOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get all orders with filtering and pagination
  */
 
-export function useGetAllOrders<TData = Awaited<ReturnType<typeof getAllOrders>>, TError = AxiosError<ErrorVO>>(
- params: GetAllOrdersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAllOrders<TData = Awaited<ReturnType<typeof getAllOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllOrders>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAllOrdersQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -364,17 +398,18 @@ export function useGetAllOrders<TData = Awaited<ReturnType<typeof getAllOrders>>
  */
 export const updateStatus1 = (
     orderId: number,
-    params: UpdateStatus1Params, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/orders/${orderId}/status`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: UpdateStatus1Params,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/orders/${orderId}/status`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -386,42 +421,69 @@ export const getUpdateStatus1QueryKey = (orderId?: number,
     }
 
     
-export const getUpdateStatus1QueryOptions = <TData = Awaited<ReturnType<typeof updateStatus1>>, TError = AxiosError<ErrorVO>>(orderId: number,
-    params: UpdateStatus1Params, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getUpdateStatus1QueryOptions = <TData = Awaited<ReturnType<typeof updateStatus1>>, TError = ErrorType<ErrorVO>>(orderId: number,
+    params: UpdateStatus1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getUpdateStatus1QueryKey(orderId,params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof updateStatus1>>> = ({ signal }) => updateStatus1(orderId,params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof updateStatus1>>> = ({ signal }) => updateStatus1(orderId,params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type UpdateStatus1QueryResult = NonNullable<Awaited<ReturnType<typeof updateStatus1>>>
-export type UpdateStatus1QueryError = AxiosError<ErrorVO>
+export type UpdateStatus1QueryError = ErrorType<ErrorVO>
 
 
+export function useUpdateStatus1<TData = Awaited<ReturnType<typeof updateStatus1>>, TError = ErrorType<ErrorVO>>(
+ orderId: number,
+    params: UpdateStatus1Params, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof updateStatus1>>,
+          TError,
+          Awaited<ReturnType<typeof updateStatus1>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUpdateStatus1<TData = Awaited<ReturnType<typeof updateStatus1>>, TError = ErrorType<ErrorVO>>(
+ orderId: number,
+    params: UpdateStatus1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof updateStatus1>>,
+          TError,
+          Awaited<ReturnType<typeof updateStatus1>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useUpdateStatus1<TData = Awaited<ReturnType<typeof updateStatus1>>, TError = ErrorType<ErrorVO>>(
+ orderId: number,
+    params: UpdateStatus1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Update order status
  */
 
-export function useUpdateStatus1<TData = Awaited<ReturnType<typeof updateStatus1>>, TError = AxiosError<ErrorVO>>(
+export function useUpdateStatus1<TData = Awaited<ReturnType<typeof updateStatus1>>, TError = ErrorType<ErrorVO>>(
  orderId: number,
-    params: UpdateStatus1Params, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+    params: UpdateStatus1Params, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof updateStatus1>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getUpdateStatus1QueryOptions(orderId,params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -436,15 +498,17 @@ export function useUpdateStatus1<TData = Awaited<ReturnType<typeof updateStatus1
  * @summary Get order by ID
  */
 export const findById = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<OrderResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/orders/${id}`,options
-    );
-  }
-
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<OrderResponseDTO>(
+      {url: `/api/v1/orders/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -455,40 +519,64 @@ export const getFindByIdQueryKey = (id?: number,) => {
     }
 
     
-export const getFindByIdQueryOptions = <TData = Awaited<ReturnType<typeof findById>>, TError = AxiosError<ErrorVO>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getFindByIdQueryOptions = <TData = Awaited<ReturnType<typeof findById>>, TError = ErrorType<ErrorVO>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getFindByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof findById>>> = ({ signal }) => findById(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof findById>>> = ({ signal }) => findById(id, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type FindByIdQueryResult = NonNullable<Awaited<ReturnType<typeof findById>>>
-export type FindByIdQueryError = AxiosError<ErrorVO>
+export type FindByIdQueryError = ErrorType<ErrorVO>
 
 
+export function useFindById<TData = Awaited<ReturnType<typeof findById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof findById>>,
+          TError,
+          Awaited<ReturnType<typeof findById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useFindById<TData = Awaited<ReturnType<typeof findById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof findById>>,
+          TError,
+          Awaited<ReturnType<typeof findById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useFindById<TData = Awaited<ReturnType<typeof findById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get order by ID
  */
 
-export function useFindById<TData = Awaited<ReturnType<typeof findById>>, TError = AxiosError<ErrorVO>>(
- id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useFindById<TData = Awaited<ReturnType<typeof findById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof findById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getFindByIdQueryOptions(id,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -503,17 +591,18 @@ export function useFindById<TData = Awaited<ReturnType<typeof findById>>, TError
  * @summary Get current user's orders
  */
 export const getMyOrders = (
-    params: GetMyOrdersParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/orders/me`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetMyOrdersParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVO>(
+      {url: `/api/v1/orders/me`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -524,40 +613,64 @@ export const getGetMyOrdersQueryKey = (params?: GetMyOrdersParams,) => {
     }
 
     
-export const getGetMyOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getMyOrders>>, TError = AxiosError<ErrorVO>>(params: GetMyOrdersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetMyOrdersQueryOptions = <TData = Awaited<ReturnType<typeof getMyOrders>>, TError = ErrorType<ErrorVO>>(params: GetMyOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetMyOrdersQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyOrders>>> = ({ signal }) => getMyOrders(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyOrders>>> = ({ signal }) => getMyOrders(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetMyOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof getMyOrders>>>
-export type GetMyOrdersQueryError = AxiosError<ErrorVO>
+export type GetMyOrdersQueryError = ErrorType<ErrorVO>
 
 
+export function useGetMyOrders<TData = Awaited<ReturnType<typeof getMyOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetMyOrdersParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyOrders>>,
+          TError,
+          Awaited<ReturnType<typeof getMyOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyOrders<TData = Awaited<ReturnType<typeof getMyOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetMyOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyOrders>>,
+          TError,
+          Awaited<ReturnType<typeof getMyOrders>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMyOrders<TData = Awaited<ReturnType<typeof getMyOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetMyOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get current user's orders
  */
 
-export function useGetMyOrders<TData = Awaited<ReturnType<typeof getMyOrders>>, TError = AxiosError<ErrorVO>>(
- params: GetMyOrdersParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetMyOrders<TData = Awaited<ReturnType<typeof getMyOrders>>, TError = ErrorType<ErrorVO>>(
+ params: GetMyOrdersParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyOrders>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetMyOrdersQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -572,27 +685,28 @@ export function useGetMyOrders<TData = Awaited<ReturnType<typeof getMyOrders>>, 
  * @summary Delete an order
  */
 export const deleteOrder = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.delete(
-      `/api/v1/orders/delete/${id}`,options
-    );
-  }
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/orders/delete/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteOrderMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOrder>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteOrderMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOrder>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteOrder>>, TError,{id: number}, TContext> => {
 
 const mutationKey = ['deleteOrder'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -600,7 +714,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteOrder>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteOrder(id,axiosOptions)
+          return  deleteOrder(id,requestOptions)
         }
 
         
@@ -610,14 +724,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteOrderMutationResult = NonNullable<Awaited<ReturnType<typeof deleteOrder>>>
     
-    export type DeleteOrderMutationError = AxiosError<ErrorVO>
+    export type DeleteOrderMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Delete an order
  */
-export const useDeleteOrder = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOrder>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useDeleteOrder = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteOrder>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteOrder>>,
         TError,
         {id: number},
@@ -626,6 +740,6 @@ export const useDeleteOrder = <TError = AxiosError<ErrorVO>,
 
       const mutationOptions = getDeleteOrderMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     

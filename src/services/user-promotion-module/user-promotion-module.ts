@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -34,7 +32,11 @@ import type {
   PromotionResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -43,29 +45,30 @@ import type {
  * @summary Mark promotion as used
  */
 export const markPromotionAsUsed = (
-    params: MarkPromotionAsUsedParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/user-promotions/use`,undefined,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+    params: MarkPromotionAsUsedParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/user-promotions/use`, method: 'POST',
+        params, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getMarkPromotionAsUsedMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPromotionAsUsed>>, TError,{params: MarkPromotionAsUsedParams}, TContext>, axios?: AxiosRequestConfig}
+export const getMarkPromotionAsUsedMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPromotionAsUsed>>, TError,{params: MarkPromotionAsUsedParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof markPromotionAsUsed>>, TError,{params: MarkPromotionAsUsedParams}, TContext> => {
 
 const mutationKey = ['markPromotionAsUsed'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -73,7 +76,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof markPromotionAsUsed>>, {params: MarkPromotionAsUsedParams}> = (props) => {
           const {params} = props ?? {};
 
-          return  markPromotionAsUsed(params,axiosOptions)
+          return  markPromotionAsUsed(params,requestOptions)
         }
 
         
@@ -83,14 +86,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type MarkPromotionAsUsedMutationResult = NonNullable<Awaited<ReturnType<typeof markPromotionAsUsed>>>
     
-    export type MarkPromotionAsUsedMutationError = AxiosError<ErrorVO>
+    export type MarkPromotionAsUsedMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Mark promotion as used
  */
-export const useMarkPromotionAsUsed = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPromotionAsUsed>>, TError,{params: MarkPromotionAsUsedParams}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useMarkPromotionAsUsed = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof markPromotionAsUsed>>, TError,{params: MarkPromotionAsUsedParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof markPromotionAsUsed>>,
         TError,
         {params: MarkPromotionAsUsedParams},
@@ -99,24 +102,25 @@ export const useMarkPromotionAsUsed = <TError = AxiosError<ErrorVO>,
 
       const mutationOptions = getMarkPromotionAsUsedMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Returns all unused and valid promotions for the given user
  * @summary Get available promotions for a user
  */
 export const getAvailablePromotions = (
-    params: GetAvailablePromotionsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PromotionResponseDTO[]>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/user-promotions/available`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetAvailablePromotionsParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PromotionResponseDTO[]>(
+      {url: `/api/v1/user-promotions/available`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -127,40 +131,64 @@ export const getGetAvailablePromotionsQueryKey = (params?: GetAvailablePromotion
     }
 
     
-export const getGetAvailablePromotionsQueryOptions = <TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = AxiosError<ErrorVO>>(params: GetAvailablePromotionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAvailablePromotionsQueryOptions = <TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = ErrorType<ErrorVO>>(params: GetAvailablePromotionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAvailablePromotionsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvailablePromotions>>> = ({ signal }) => getAvailablePromotions(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvailablePromotions>>> = ({ signal }) => getAvailablePromotions(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAvailablePromotionsQueryResult = NonNullable<Awaited<ReturnType<typeof getAvailablePromotions>>>
-export type GetAvailablePromotionsQueryError = AxiosError<ErrorVO>
+export type GetAvailablePromotionsQueryError = ErrorType<ErrorVO>
 
 
+export function useGetAvailablePromotions<TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailablePromotions>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailablePromotions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvailablePromotions<TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailablePromotions>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailablePromotions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvailablePromotions<TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get available promotions for a user
  */
 
-export function useGetAvailablePromotions<TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = AxiosError<ErrorVO>>(
- params: GetAvailablePromotionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAvailablePromotions<TData = Awaited<ReturnType<typeof getAvailablePromotions>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotions>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAvailablePromotionsQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -175,17 +203,18 @@ export function useGetAvailablePromotions<TData = Awaited<ReturnType<typeof getA
  * @summary Get promotions applicable for an order
  */
 export const getAvailablePromotionsForOrder = (
-    params: GetAvailablePromotionsForOrderParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PromotionResponseDTO[]>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/user-promotions/available-for-order`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetAvailablePromotionsForOrderParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PromotionResponseDTO[]>(
+      {url: `/api/v1/user-promotions/available-for-order`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -196,40 +225,64 @@ export const getGetAvailablePromotionsForOrderQueryKey = (params?: GetAvailableP
     }
 
     
-export const getGetAvailablePromotionsForOrderQueryOptions = <TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = AxiosError<ErrorVO>>(params: GetAvailablePromotionsForOrderParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAvailablePromotionsForOrderQueryOptions = <TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = ErrorType<ErrorVO>>(params: GetAvailablePromotionsForOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAvailablePromotionsForOrderQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>> = ({ signal }) => getAvailablePromotionsForOrder(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>> = ({ signal }) => getAvailablePromotionsForOrder(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAvailablePromotionsForOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>>
-export type GetAvailablePromotionsForOrderQueryError = AxiosError<ErrorVO>
+export type GetAvailablePromotionsForOrderQueryError = ErrorType<ErrorVO>
 
 
+export function useGetAvailablePromotionsForOrder<TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsForOrderParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvailablePromotionsForOrder<TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsForOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvailablePromotionsForOrder<TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsForOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get promotions applicable for an order
  */
 
-export function useGetAvailablePromotionsForOrder<TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = AxiosError<ErrorVO>>(
- params: GetAvailablePromotionsForOrderParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAvailablePromotionsForOrder<TData = Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError = ErrorType<ErrorVO>>(
+ params: GetAvailablePromotionsForOrderParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailablePromotionsForOrder>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAvailablePromotionsForOrderQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

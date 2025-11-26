@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -34,7 +32,11 @@ import type {
   RoleResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -43,15 +45,17 @@ import type {
  * @summary Get role by ID
  */
 export const getRoleById = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<RoleResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/roles/${id}`,options
-    );
-  }
-
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<RoleResponseDTO>(
+      {url: `/api/v1/roles/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -62,40 +66,64 @@ export const getGetRoleByIdQueryKey = (id?: number,) => {
     }
 
     
-export const getGetRoleByIdQueryOptions = <TData = Awaited<ReturnType<typeof getRoleById>>, TError = AxiosError<ErrorVO>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetRoleByIdQueryOptions = <TData = Awaited<ReturnType<typeof getRoleById>>, TError = ErrorType<ErrorVO>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetRoleByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoleById>>> = ({ signal }) => getRoleById(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoleById>>> = ({ signal }) => getRoleById(id, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetRoleByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getRoleById>>>
-export type GetRoleByIdQueryError = AxiosError<ErrorVO>
+export type GetRoleByIdQueryError = ErrorType<ErrorVO>
 
 
+export function useGetRoleById<TData = Awaited<ReturnType<typeof getRoleById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoleById>>,
+          TError,
+          Awaited<ReturnType<typeof getRoleById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoleById<TData = Awaited<ReturnType<typeof getRoleById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRoleById>>,
+          TError,
+          Awaited<ReturnType<typeof getRoleById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRoleById<TData = Awaited<ReturnType<typeof getRoleById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get role by ID
  */
 
-export function useGetRoleById<TData = Awaited<ReturnType<typeof getRoleById>>, TError = AxiosError<ErrorVO>>(
- id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetRoleById<TData = Awaited<ReturnType<typeof getRoleById>>, TError = ErrorType<ErrorVO>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoleById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetRoleByIdQueryOptions(id,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -111,36 +139,38 @@ export function useGetRoleById<TData = Awaited<ReturnType<typeof getRoleById>>, 
  */
 export const updateRole = (
     id: number,
-    roleRequestDTO: RoleRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<RoleResponseDTO>> => {
-    
-    
-    return axios.default.put(
-      `/api/v1/roles/${id}`,
-      roleRequestDTO,options
-    );
-  }
+    roleRequestDTO: BodyType<RoleRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<RoleResponseDTO>(
+      {url: `/api/v1/roles/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: roleRequestDTO
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateRoleMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRole>>, TError,{id: number;data: RoleRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof updateRole>>, TError,{id: number;data: RoleRequestDTO}, TContext> => {
+export const getUpdateRoleMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRole>>, TError,{id: number;data: BodyType<RoleRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateRole>>, TError,{id: number;data: BodyType<RoleRequestDTO>}, TContext> => {
 
 const mutationKey = ['updateRole'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRole>>, {id: number;data: RoleRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateRole>>, {id: number;data: BodyType<RoleRequestDTO>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  updateRole(id,data,axiosOptions)
+          return  updateRole(id,data,requestOptions)
         }
 
         
@@ -149,51 +179,52 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateRoleMutationResult = NonNullable<Awaited<ReturnType<typeof updateRole>>>
-    export type UpdateRoleMutationBody = RoleRequestDTO
-    export type UpdateRoleMutationError = AxiosError<ErrorVO>
+    export type UpdateRoleMutationBody = BodyType<RoleRequestDTO>
+    export type UpdateRoleMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Update a role
  */
-export const useUpdateRole = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRole>>, TError,{id: number;data: RoleRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useUpdateRole = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRole>>, TError,{id: number;data: BodyType<RoleRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateRole>>,
         TError,
-        {id: number;data: RoleRequestDTO},
+        {id: number;data: BodyType<RoleRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getUpdateRoleMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Delete a role by its ID. Only accessible to users with the ADMIN role.
  * @summary Delete a role
  */
 export const deleteRole = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.delete(
-      `/api/v1/roles/${id}`,options
-    );
-  }
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/roles/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteRoleMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRole>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteRoleMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRole>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteRole>>, TError,{id: number}, TContext> => {
 
 const mutationKey = ['deleteRole'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -201,7 +232,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRole>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  deleteRole(id,axiosOptions)
+          return  deleteRole(id,requestOptions)
         }
 
         
@@ -211,14 +242,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteRoleMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRole>>>
     
-    export type DeleteRoleMutationError = AxiosError<ErrorVO>
+    export type DeleteRoleMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Delete a role
  */
-export const useDeleteRole = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRole>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useDeleteRole = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteRole>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteRole>>,
         TError,
         {id: number},
@@ -227,24 +258,25 @@ export const useDeleteRole = <TError = AxiosError<ErrorVO>,
 
       const mutationOptions = getDeleteRoleMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Retrieve a paginated list of all roles. Only accessible to users with the ADMIN role.
  * @summary Get all roles
  */
 export const getAllRoles = (
-    params: GetAllRolesParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/roles`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetAllRolesParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVO>(
+      {url: `/api/v1/roles`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -255,40 +287,64 @@ export const getGetAllRolesQueryKey = (params?: GetAllRolesParams,) => {
     }
 
     
-export const getGetAllRolesQueryOptions = <TData = Awaited<ReturnType<typeof getAllRoles>>, TError = AxiosError<ErrorVO>>(params: GetAllRolesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAllRolesQueryOptions = <TData = Awaited<ReturnType<typeof getAllRoles>>, TError = ErrorType<ErrorVO>>(params: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllRolesQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllRoles>>> = ({ signal }) => getAllRoles(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllRoles>>> = ({ signal }) => getAllRoles(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAllRolesQueryResult = NonNullable<Awaited<ReturnType<typeof getAllRoles>>>
-export type GetAllRolesQueryError = AxiosError<ErrorVO>
+export type GetAllRolesQueryError = ErrorType<ErrorVO>
 
 
+export function useGetAllRoles<TData = Awaited<ReturnType<typeof getAllRoles>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllRolesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllRoles>>,
+          TError,
+          Awaited<ReturnType<typeof getAllRoles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllRoles<TData = Awaited<ReturnType<typeof getAllRoles>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllRoles>>,
+          TError,
+          Awaited<ReturnType<typeof getAllRoles>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllRoles<TData = Awaited<ReturnType<typeof getAllRoles>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get all roles
  */
 
-export function useGetAllRoles<TData = Awaited<ReturnType<typeof getAllRoles>>, TError = AxiosError<ErrorVO>>(
- params: GetAllRolesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAllRoles<TData = Awaited<ReturnType<typeof getAllRoles>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllRolesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllRoles>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAllRolesQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -303,36 +359,39 @@ export function useGetAllRoles<TData = Awaited<ReturnType<typeof getAllRoles>>, 
  * @summary Create a new role
  */
 export const createRole = (
-    roleRequestDTO: RoleRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<RoleResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/roles`,
-      roleRequestDTO,options
-    );
-  }
+    roleRequestDTO: BodyType<RoleRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<RoleResponseDTO>(
+      {url: `/api/v1/roles`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: roleRequestDTO, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateRoleMutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRole>>, TError,{data: RoleRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createRole>>, TError,{data: RoleRequestDTO}, TContext> => {
+export const getCreateRoleMutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRole>>, TError,{data: BodyType<RoleRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof createRole>>, TError,{data: BodyType<RoleRequestDTO>}, TContext> => {
 
 const mutationKey = ['createRole'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRole>>, {data: RoleRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRole>>, {data: BodyType<RoleRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createRole(data,axiosOptions)
+          return  createRole(data,requestOptions)
         }
 
         
@@ -341,23 +400,23 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateRoleMutationResult = NonNullable<Awaited<ReturnType<typeof createRole>>>
-    export type CreateRoleMutationBody = RoleRequestDTO
-    export type CreateRoleMutationError = AxiosError<ErrorVO>
+    export type CreateRoleMutationBody = BodyType<RoleRequestDTO>
+    export type CreateRoleMutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Create a new role
  */
-export const useCreateRole = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRole>>, TError,{data: RoleRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreateRole = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createRole>>, TError,{data: BodyType<RoleRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createRole>>,
         TError,
-        {data: RoleRequestDTO},
+        {data: BodyType<RoleRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getCreateRoleMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     

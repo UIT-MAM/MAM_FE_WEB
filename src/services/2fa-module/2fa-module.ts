@@ -10,16 +10,10 @@ import {
 } from '@tanstack/react-query';
 import type {
   MutationFunction,
+  QueryClient,
   UseMutationOptions,
   UseMutationResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ConfirmTwoFactorAuthenticationParams,
@@ -28,7 +22,11 @@ import type {
   VerifySetup2FAResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -36,29 +34,30 @@ import type {
  * @summary Thiết lập xác thực hai yếu tố
  */
 export const enableTwoFactorAuthentication = (
-    params: EnableTwoFactorAuthenticationParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<TwoFASetupResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/2fa/setup-totp`,undefined,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+    params: EnableTwoFactorAuthenticationParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<TwoFASetupResponseDTO>(
+      {url: `/2fa/setup-totp`, method: 'POST',
+        params, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getEnableTwoFactorAuthenticationMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>, TError,{params: EnableTwoFactorAuthenticationParams}, TContext>, axios?: AxiosRequestConfig}
+export const getEnableTwoFactorAuthenticationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>, TError,{params: EnableTwoFactorAuthenticationParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>, TError,{params: EnableTwoFactorAuthenticationParams}, TContext> => {
 
 const mutationKey = ['enableTwoFactorAuthentication'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -66,7 +65,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>, {params: EnableTwoFactorAuthenticationParams}> = (props) => {
           const {params} = props ?? {};
 
-          return  enableTwoFactorAuthentication(params,axiosOptions)
+          return  enableTwoFactorAuthentication(params,requestOptions)
         }
 
         
@@ -76,14 +75,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type EnableTwoFactorAuthenticationMutationResult = NonNullable<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>>
     
-    export type EnableTwoFactorAuthenticationMutationError = AxiosError<unknown>
+    export type EnableTwoFactorAuthenticationMutationError = ErrorType<unknown>
 
     /**
  * @summary Thiết lập xác thực hai yếu tố
  */
-export const useEnableTwoFactorAuthentication = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>, TError,{params: EnableTwoFactorAuthenticationParams}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useEnableTwoFactorAuthentication = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enableTwoFactorAuthentication>>, TError,{params: EnableTwoFactorAuthenticationParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof enableTwoFactorAuthentication>>,
         TError,
         {params: EnableTwoFactorAuthenticationParams},
@@ -92,35 +91,36 @@ export const useEnableTwoFactorAuthentication = <TError = AxiosError<unknown>,
 
       const mutationOptions = getEnableTwoFactorAuthenticationMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * @summary Xác nhận xác thực hai yếu tố
  */
 export const confirmTwoFactorAuthentication = (
-    params: ConfirmTwoFactorAuthenticationParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<VerifySetup2FAResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/2fa/confirm-setup-totp`,undefined,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+    params: ConfirmTwoFactorAuthenticationParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<VerifySetup2FAResponseDTO>(
+      {url: `/2fa/confirm-setup-totp`, method: 'POST',
+        params, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getConfirmTwoFactorAuthenticationMutationOptions = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>, TError,{params: ConfirmTwoFactorAuthenticationParams}, TContext>, axios?: AxiosRequestConfig}
+export const getConfirmTwoFactorAuthenticationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>, TError,{params: ConfirmTwoFactorAuthenticationParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>, TError,{params: ConfirmTwoFactorAuthenticationParams}, TContext> => {
 
 const mutationKey = ['confirmTwoFactorAuthentication'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -128,7 +128,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>, {params: ConfirmTwoFactorAuthenticationParams}> = (props) => {
           const {params} = props ?? {};
 
-          return  confirmTwoFactorAuthentication(params,axiosOptions)
+          return  confirmTwoFactorAuthentication(params,requestOptions)
         }
 
         
@@ -138,14 +138,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type ConfirmTwoFactorAuthenticationMutationResult = NonNullable<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>>
     
-    export type ConfirmTwoFactorAuthenticationMutationError = AxiosError<unknown>
+    export type ConfirmTwoFactorAuthenticationMutationError = ErrorType<unknown>
 
     /**
  * @summary Xác nhận xác thực hai yếu tố
  */
-export const useConfirmTwoFactorAuthentication = <TError = AxiosError<unknown>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>, TError,{params: ConfirmTwoFactorAuthenticationParams}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useConfirmTwoFactorAuthentication = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>, TError,{params: ConfirmTwoFactorAuthenticationParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof confirmTwoFactorAuthentication>>,
         TError,
         {params: ConfirmTwoFactorAuthenticationParams},
@@ -154,6 +154,6 @@ export const useConfirmTwoFactorAuthentication = <TError = AxiosError<unknown>,
 
       const mutationOptions = getConfirmTwoFactorAuthenticationMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     

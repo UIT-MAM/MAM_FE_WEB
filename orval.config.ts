@@ -15,12 +15,12 @@ export default defineConfig({
       mock: false,
       clean: true,
       httpClient: "axios",
-      // override: {
-      //   mutator: {
-      //     name: "axiosInstanceFn",
-      //     path: "src/lib/axiosConfig.ts",
-      //   },
-      // },
+      override: {
+        mutator: {
+          name: "axiosInstanceFn",
+          path: "src/lib/axiosConfig.ts",
+        },
+      },
     },
   },
   storeMeZod: {

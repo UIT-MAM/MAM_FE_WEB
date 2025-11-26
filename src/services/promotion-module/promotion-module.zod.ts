@@ -28,8 +28,8 @@ export const updatePromotionBody = zod.object({
   "description": zod.string().optional(),
   "discountValue": zod.number(),
   "minValue": zod.number(),
-  "startDate": zod.string().datetime({}),
-  "endDate": zod.string().datetime({}),
+  "startDate": zod.iso.datetime({}),
+  "endDate": zod.iso.datetime({}),
   "code": zod.string().optional(),
   "isPublic": zod.boolean().optional(),
   "userIds": zod.array(zod.number()).optional()
@@ -71,8 +71,8 @@ export const createPromotionBody = zod.object({
   "description": zod.string().optional(),
   "discountValue": zod.number(),
   "minValue": zod.number(),
-  "startDate": zod.string().datetime({}),
-  "endDate": zod.string().datetime({}),
+  "startDate": zod.iso.datetime({}),
+  "endDate": zod.iso.datetime({}),
   "code": zod.string().optional(),
   "isPublic": zod.boolean().optional(),
   "userIds": zod.array(zod.number()).optional()

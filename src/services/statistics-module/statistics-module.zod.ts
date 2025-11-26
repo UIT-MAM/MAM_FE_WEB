@@ -13,8 +13,8 @@ import * as zod from 'zod';
  * @summary Get revenue statistics
  */
 export const getRevenueStatsQueryParams = zod.object({
-  "startDate": zod.string().datetime({}).optional().describe('Start date in ISO-8601 format (e.g., 2024-01-01T00:00:00Z)'),
-  "endDate": zod.string().datetime({}).optional().describe('End date in ISO-8601 format (e.g., 2024-01-31T23:59:59Z)'),
+  "startDate": zod.iso.datetime({}).optional().describe('Start date in ISO-8601 format (e.g., 2024-01-01T00:00:00Z)'),
+  "endDate": zod.iso.datetime({}).optional().describe('End date in ISO-8601 format (e.g., 2024-01-31T23:59:59Z)'),
   "groupBy": zod.string().optional().describe('Group by \'day\', \'week\', or \'month\'')
 })
 

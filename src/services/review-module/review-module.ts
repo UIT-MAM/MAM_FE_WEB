@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -35,7 +33,11 @@ import type {
   ReviewResponseDTO
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -44,36 +46,38 @@ import type {
  */
 export const updateReview = (
     reviewId: number,
-    reviewRequestDTO: ReviewRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ReviewResponseDTO>> => {
-    
-    
-    return axios.default.put(
-      `/api/v1/reviews/${reviewId}`,
-      reviewRequestDTO,options
-    );
-  }
+    reviewRequestDTO: BodyType<ReviewRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<ReviewResponseDTO>(
+      {url: `/api/v1/reviews/${reviewId}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: reviewRequestDTO
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdateReviewMutationOptions = <TError = AxiosError<ErrorVO | ReviewResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: ReviewRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: ReviewRequestDTO}, TContext> => {
+export const getUpdateReviewMutationOptions = <TError = ErrorType<ErrorVO | ReviewResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: BodyType<ReviewRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: BodyType<ReviewRequestDTO>}, TContext> => {
 
 const mutationKey = ['updateReview'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateReview>>, {reviewId: number;data: ReviewRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateReview>>, {reviewId: number;data: BodyType<ReviewRequestDTO>}> = (props) => {
           const {reviewId,data} = props ?? {};
 
-          return  updateReview(reviewId,data,axiosOptions)
+          return  updateReview(reviewId,data,requestOptions)
         }
 
         
@@ -82,51 +86,52 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type UpdateReviewMutationResult = NonNullable<Awaited<ReturnType<typeof updateReview>>>
-    export type UpdateReviewMutationBody = ReviewRequestDTO
-    export type UpdateReviewMutationError = AxiosError<ErrorVO | ReviewResponseDTO>
+    export type UpdateReviewMutationBody = BodyType<ReviewRequestDTO>
+    export type UpdateReviewMutationError = ErrorType<ErrorVO | ReviewResponseDTO>
 
     /**
  * @summary Update reviews
  */
-export const useUpdateReview = <TError = AxiosError<ErrorVO | ReviewResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: ReviewRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useUpdateReview = <TError = ErrorType<ErrorVO | ReviewResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateReview>>, TError,{reviewId: number;data: BodyType<ReviewRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof updateReview>>,
         TError,
-        {reviewId: number;data: ReviewRequestDTO},
+        {reviewId: number;data: BodyType<ReviewRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getUpdateReviewMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Delete a review by the id
  * @summary Delete review
  */
 export const deleteReview = (
-    reviewId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.delete(
-      `/api/v1/reviews/${reviewId}`,options
-    );
-  }
+    reviewId: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/reviews/${reviewId}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDeleteReviewMutationOptions = <TError = AxiosError<ErrorVO | void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{reviewId: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDeleteReviewMutationOptions = <TError = ErrorType<ErrorVO | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{reviewId: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{reviewId: number}, TContext> => {
 
 const mutationKey = ['deleteReview'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -134,7 +139,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteReview>>, {reviewId: number}> = (props) => {
           const {reviewId} = props ?? {};
 
-          return  deleteReview(reviewId,axiosOptions)
+          return  deleteReview(reviewId,requestOptions)
         }
 
         
@@ -144,14 +149,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type DeleteReviewMutationResult = NonNullable<Awaited<ReturnType<typeof deleteReview>>>
     
-    export type DeleteReviewMutationError = AxiosError<ErrorVO | void>
+    export type DeleteReviewMutationError = ErrorType<ErrorVO | void>
 
     /**
  * @summary Delete review
  */
-export const useDeleteReview = <TError = AxiosError<ErrorVO | void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{reviewId: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useDeleteReview = <TError = ErrorType<ErrorVO | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteReview>>, TError,{reviewId: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof deleteReview>>,
         TError,
         {reviewId: number},
@@ -160,24 +165,25 @@ export const useDeleteReview = <TError = AxiosError<ErrorVO | void>,
 
       const mutationOptions = getDeleteReviewMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Return the list of reviews
  * @summary Get all reviews
  */
 export const getAllReviews = (
-    params?: GetAllReviewsParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVOReviewResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/reviews`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params?: GetAllReviewsParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVOReviewResponseDTO>(
+      {url: `/api/v1/reviews`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -188,40 +194,64 @@ export const getGetAllReviewsQueryKey = (params?: GetAllReviewsParams,) => {
     }
 
     
-export const getGetAllReviewsQueryOptions = <TData = Awaited<ReturnType<typeof getAllReviews>>, TError = AxiosError<ErrorVO | PageVOReviewResponseDTO>>(params?: GetAllReviewsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAllReviewsQueryOptions = <TData = Awaited<ReturnType<typeof getAllReviews>>, TError = ErrorType<ErrorVO | PageVOReviewResponseDTO>>(params?: GetAllReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllReviewsQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllReviews>>> = ({ signal }) => getAllReviews(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllReviews>>> = ({ signal }) => getAllReviews(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAllReviewsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllReviews>>>
-export type GetAllReviewsQueryError = AxiosError<ErrorVO | PageVOReviewResponseDTO>
+export type GetAllReviewsQueryError = ErrorType<ErrorVO | PageVOReviewResponseDTO>
 
 
+export function useGetAllReviews<TData = Awaited<ReturnType<typeof getAllReviews>>, TError = ErrorType<ErrorVO | PageVOReviewResponseDTO>>(
+ params: undefined |  GetAllReviewsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllReviews>>,
+          TError,
+          Awaited<ReturnType<typeof getAllReviews>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllReviews<TData = Awaited<ReturnType<typeof getAllReviews>>, TError = ErrorType<ErrorVO | PageVOReviewResponseDTO>>(
+ params?: GetAllReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAllReviews>>,
+          TError,
+          Awaited<ReturnType<typeof getAllReviews>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAllReviews<TData = Awaited<ReturnType<typeof getAllReviews>>, TError = ErrorType<ErrorVO | PageVOReviewResponseDTO>>(
+ params?: GetAllReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get all reviews
  */
 
-export function useGetAllReviews<TData = Awaited<ReturnType<typeof getAllReviews>>, TError = AxiosError<ErrorVO | PageVOReviewResponseDTO>>(
- params?: GetAllReviewsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAllReviews<TData = Awaited<ReturnType<typeof getAllReviews>>, TError = ErrorType<ErrorVO | PageVOReviewResponseDTO>>(
+ params?: GetAllReviewsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllReviews>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAllReviewsQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -236,36 +266,39 @@ export function useGetAllReviews<TData = Awaited<ReturnType<typeof getAllReviews
  * @summary Create a new review
  */
 export const createReview = (
-    reviewRequestDTO: ReviewRequestDTO, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ReviewResponseDTO>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/reviews`,
-      reviewRequestDTO,options
-    );
-  }
+    reviewRequestDTO: BodyType<ReviewRequestDTO>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<ReviewResponseDTO>(
+      {url: `/api/v1/reviews`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: reviewRequestDTO, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreateReviewMutationOptions = <TError = AxiosError<ErrorVO | ReviewResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{data: ReviewRequestDTO}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{data: ReviewRequestDTO}, TContext> => {
+export const getCreateReviewMutationOptions = <TError = ErrorType<ErrorVO | ReviewResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{data: BodyType<ReviewRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{data: BodyType<ReviewRequestDTO>}, TContext> => {
 
 const mutationKey = ['createReview'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReview>>, {data: ReviewRequestDTO}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createReview>>, {data: BodyType<ReviewRequestDTO>}> = (props) => {
           const {data} = props ?? {};
 
-          return  createReview(data,axiosOptions)
+          return  createReview(data,requestOptions)
         }
 
         
@@ -274,24 +307,24 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type CreateReviewMutationResult = NonNullable<Awaited<ReturnType<typeof createReview>>>
-    export type CreateReviewMutationBody = ReviewRequestDTO
-    export type CreateReviewMutationError = AxiosError<ErrorVO | ReviewResponseDTO>
+    export type CreateReviewMutationBody = BodyType<ReviewRequestDTO>
+    export type CreateReviewMutationError = ErrorType<ErrorVO | ReviewResponseDTO>
 
     /**
  * @summary Create a new review
  */
-export const useCreateReview = <TError = AxiosError<ErrorVO | ReviewResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{data: ReviewRequestDTO}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreateReview = <TError = ErrorType<ErrorVO | ReviewResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createReview>>, TError,{data: BodyType<ReviewRequestDTO>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof createReview>>,
         TError,
-        {data: ReviewRequestDTO},
+        {data: BodyType<ReviewRequestDTO>},
         TContext
       > => {
 
       const mutationOptions = getCreateReviewMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Add new content to the reply
@@ -299,29 +332,29 @@ export const useCreateReview = <TError = AxiosError<ErrorVO | ReviewResponseDTO>
  */
 export const replyToReview = (
     reviewId: number,
-    params: ReplyToReviewParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ReviewResponseDTO>> => {
-    
-    
-    return axios.default.patch(
-      `/api/v1/reviews/${reviewId}/reply`,undefined,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
+    params: ReplyToReviewParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<ReviewResponseDTO>(
+      {url: `/api/v1/reviews/${reviewId}/reply`, method: 'PATCH',
+        params
+    },
+      options);
+    }
+  
 
 
-
-export const getReplyToReviewMutationOptions = <TError = AxiosError<ErrorVO | ReviewResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replyToReview>>, TError,{reviewId: number;params: ReplyToReviewParams}, TContext>, axios?: AxiosRequestConfig}
+export const getReplyToReviewMutationOptions = <TError = ErrorType<ErrorVO | ReviewResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replyToReview>>, TError,{reviewId: number;params: ReplyToReviewParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof replyToReview>>, TError,{reviewId: number;params: ReplyToReviewParams}, TContext> => {
 
 const mutationKey = ['replyToReview'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -329,7 +362,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof replyToReview>>, {reviewId: number;params: ReplyToReviewParams}> = (props) => {
           const {reviewId,params} = props ?? {};
 
-          return  replyToReview(reviewId,params,axiosOptions)
+          return  replyToReview(reviewId,params,requestOptions)
         }
 
         
@@ -339,14 +372,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type ReplyToReviewMutationResult = NonNullable<Awaited<ReturnType<typeof replyToReview>>>
     
-    export type ReplyToReviewMutationError = AxiosError<ErrorVO | ReviewResponseDTO>
+    export type ReplyToReviewMutationError = ErrorType<ErrorVO | ReviewResponseDTO>
 
     /**
  * @summary Create a reply to the review
  */
-export const useReplyToReview = <TError = AxiosError<ErrorVO | ReviewResponseDTO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replyToReview>>, TError,{reviewId: number;params: ReplyToReviewParams}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useReplyToReview = <TError = ErrorType<ErrorVO | ReviewResponseDTO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof replyToReview>>, TError,{reviewId: number;params: ReplyToReviewParams}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof replyToReview>>,
         TError,
         {reviewId: number;params: ReplyToReviewParams},
@@ -355,22 +388,24 @@ export const useReplyToReview = <TError = AxiosError<ErrorVO | ReviewResponseDTO
 
       const mutationOptions = getReplyToReviewMutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Return the list of reviews related to the order
  * @summary Get the review of the order
  */
 export const getReviewsByOrder = (
-    orderId: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ReviewResponseDTO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/reviews/order/${orderId}`,options
-    );
-  }
-
+    orderId: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<ReviewResponseDTO>(
+      {url: `/api/v1/reviews/order/${orderId}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -381,40 +416,64 @@ export const getGetReviewsByOrderQueryKey = (orderId?: number,) => {
     }
 
     
-export const getGetReviewsByOrderQueryOptions = <TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = AxiosError<ErrorVO | ReviewResponseDTO>>(orderId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetReviewsByOrderQueryOptions = <TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = ErrorType<ErrorVO | ReviewResponseDTO>>(orderId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetReviewsByOrderQueryKey(orderId);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReviewsByOrder>>> = ({ signal }) => getReviewsByOrder(orderId, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReviewsByOrder>>> = ({ signal }) => getReviewsByOrder(orderId, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetReviewsByOrderQueryResult = NonNullable<Awaited<ReturnType<typeof getReviewsByOrder>>>
-export type GetReviewsByOrderQueryError = AxiosError<ErrorVO | ReviewResponseDTO>
+export type GetReviewsByOrderQueryError = ErrorType<ErrorVO | ReviewResponseDTO>
 
 
+export function useGetReviewsByOrder<TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = ErrorType<ErrorVO | ReviewResponseDTO>>(
+ orderId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getReviewsByOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getReviewsByOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetReviewsByOrder<TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = ErrorType<ErrorVO | ReviewResponseDTO>>(
+ orderId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getReviewsByOrder>>,
+          TError,
+          Awaited<ReturnType<typeof getReviewsByOrder>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetReviewsByOrder<TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = ErrorType<ErrorVO | ReviewResponseDTO>>(
+ orderId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get the review of the order
  */
 
-export function useGetReviewsByOrder<TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = AxiosError<ErrorVO | ReviewResponseDTO>>(
- orderId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetReviewsByOrder<TData = Awaited<ReturnType<typeof getReviewsByOrder>>, TError = ErrorType<ErrorVO | ReviewResponseDTO>>(
+ orderId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getReviewsByOrder>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetReviewsByOrderQueryOptions(orderId,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 

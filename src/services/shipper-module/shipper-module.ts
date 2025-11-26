@@ -10,21 +10,19 @@ import {
   useQuery
 } from '@tanstack/react-query';
 import type {
+  DataTag,
+  DefinedInitialDataOptions,
+  DefinedUseQueryResult,
   MutationFunction,
+  QueryClient,
   QueryFunction,
   QueryKey,
+  UndefinedInitialDataOptions,
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
   UseQueryResult
 } from '@tanstack/react-query';
-
-import * as axios from 'axios';
-import type {
-  AxiosError,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
 
 import type {
   ErrorVO,
@@ -34,7 +32,11 @@ import type {
   ShipperResponse
 } from '../../types';
 
+import { axiosInstanceFn } from '../../lib/axiosConfig';
+import type { ErrorType , BodyType } from '../../lib/axiosConfig';
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -42,15 +44,17 @@ import type {
  * @summary Get shipper by ID
  */
 export const getById = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ShipperResponse>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/shippers/${id}`,options
-    );
-  }
-
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<ShipperResponse>(
+      {url: `/api/v1/shippers/${id}`, method: 'GET', signal
+    },
+      options);
+    }
+  
 
 
 
@@ -61,40 +65,64 @@ export const getGetByIdQueryKey = (id?: number,) => {
     }
 
     
-export const getGetByIdQueryOptions = <TData = Awaited<ReturnType<typeof getById>>, TError = AxiosError<ErrorVO | ShipperResponse>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetByIdQueryOptions = <TData = Awaited<ReturnType<typeof getById>>, TError = ErrorType<ErrorVO | ShipperResponse>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetByIdQueryKey(id);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getById>>> = ({ signal }) => getById(id, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getById>>> = ({ signal }) => getById(id, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetByIdQueryResult = NonNullable<Awaited<ReturnType<typeof getById>>>
-export type GetByIdQueryError = AxiosError<ErrorVO | ShipperResponse>
+export type GetByIdQueryError = ErrorType<ErrorVO | ShipperResponse>
 
 
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ErrorType<ErrorVO | ShipperResponse>>(
+ id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getById>>,
+          TError,
+          Awaited<ReturnType<typeof getById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ErrorType<ErrorVO | ShipperResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getById>>,
+          TError,
+          Awaited<ReturnType<typeof getById>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ErrorType<ErrorVO | ShipperResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get shipper by ID
  */
 
-export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = AxiosError<ErrorVO | ShipperResponse>>(
- id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError = ErrorType<ErrorVO | ShipperResponse>>(
+ id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getById>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetByIdQueryOptions(id,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -109,36 +137,38 @@ export function useGetById<TData = Awaited<ReturnType<typeof getById>>, TError =
  */
 export const update1 = (
     id: number,
-    shipperRequest: ShipperRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ShipperResponse>> => {
-    
-    
-    return axios.default.put(
-      `/api/v1/shippers/${id}`,
-      shipperRequest,options
-    );
-  }
+    shipperRequest: BodyType<ShipperRequest>,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<ShipperResponse>(
+      {url: `/api/v1/shippers/${id}`, method: 'PUT',
+      headers: {'Content-Type': 'application/json', },
+      data: shipperRequest
+    },
+      options);
+    }
+  
 
 
-
-export const getUpdate1MutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: ShipperRequest}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: ShipperRequest}, TContext> => {
+export const getUpdate1MutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: BodyType<ShipperRequest>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: BodyType<ShipperRequest>}, TContext> => {
 
 const mutationKey = ['update1'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof update1>>, {id: number;data: ShipperRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof update1>>, {id: number;data: BodyType<ShipperRequest>}> = (props) => {
           const {id,data} = props ?? {};
 
-          return  update1(id,data,axiosOptions)
+          return  update1(id,data,requestOptions)
         }
 
         
@@ -147,50 +177,51 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type Update1MutationResult = NonNullable<Awaited<ReturnType<typeof update1>>>
-    export type Update1MutationBody = ShipperRequest
-    export type Update1MutationError = AxiosError<ErrorVO>
+    export type Update1MutationBody = BodyType<ShipperRequest>
+    export type Update1MutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Update a shipper by ID
  */
-export const useUpdate1 = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: ShipperRequest}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useUpdate1 = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof update1>>, TError,{id: number;data: BodyType<ShipperRequest>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof update1>>,
         TError,
-        {id: number;data: ShipperRequest},
+        {id: number;data: BodyType<ShipperRequest>},
         TContext
       > => {
 
       const mutationOptions = getUpdate1MutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * @summary Delete a shipper by ID
  */
 export const delete1 = (
-    id: number, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<void>> => {
-    
-    
-    return axios.default.delete(
-      `/api/v1/shippers/${id}`,options
-    );
-  }
+    id: number,
+ options?: SecondParameter<typeof axiosInstanceFn>,) => {
+      
+      
+      return axiosInstanceFn<void>(
+      {url: `/api/v1/shippers/${id}`, method: 'DELETE'
+    },
+      options);
+    }
+  
 
 
-
-export const getDelete1MutationOptions = <TError = AxiosError<ErrorVO | void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
+export const getDelete1MutationOptions = <TError = ErrorType<ErrorVO | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
 ): UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext> => {
 
 const mutationKey = ['delete1'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
@@ -198,7 +229,7 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof delete1>>, {id: number}> = (props) => {
           const {id} = props ?? {};
 
-          return  delete1(id,axiosOptions)
+          return  delete1(id,requestOptions)
         }
 
         
@@ -208,14 +239,14 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
 
     export type Delete1MutationResult = NonNullable<Awaited<ReturnType<typeof delete1>>>
     
-    export type Delete1MutationError = AxiosError<ErrorVO | void>
+    export type Delete1MutationError = ErrorType<ErrorVO | void>
 
     /**
  * @summary Delete a shipper by ID
  */
-export const useDelete1 = <TError = AxiosError<ErrorVO | void>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useDelete1 = <TError = ErrorType<ErrorVO | void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof delete1>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof delete1>>,
         TError,
         {id: number},
@@ -224,24 +255,25 @@ export const useDelete1 = <TError = AxiosError<ErrorVO | void>,
 
       const mutationOptions = getDelete1MutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     /**
  * Supports pagination and filtering
  * @summary Get all shippers
  */
 export const getAll = (
-    params: GetAllParams, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<PageVO>> => {
-    
-    
-    return axios.default.get(
-      `/api/v1/shippers`,{
-    ...options,
-        params: {...params, ...options?.params},}
-    );
-  }
-
+    params: GetAllParams,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<PageVO>(
+      {url: `/api/v1/shippers`, method: 'GET',
+        params, signal
+    },
+      options);
+    }
+  
 
 
 
@@ -252,40 +284,64 @@ export const getGetAllQueryKey = (params?: GetAllParams,) => {
     }
 
     
-export const getGetAllQueryOptions = <TData = Awaited<ReturnType<typeof getAll>>, TError = AxiosError<ErrorVO>>(params: GetAllParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>, axios?: AxiosRequestConfig}
+export const getGetAllQueryOptions = <TData = Awaited<ReturnType<typeof getAll>>, TError = ErrorType<ErrorVO>>(params: GetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
 ) => {
 
-const {query: queryOptions, axios: axiosOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllQueryKey(params);
 
   
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAll>>> = ({ signal }) => getAll(params, { signal, ...axiosOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAll>>> = ({ signal }) => getAll(params, requestOptions, signal);
 
       
 
       
 
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData> & { queryKey: QueryKey }
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
 }
 
 export type GetAllQueryResult = NonNullable<Awaited<ReturnType<typeof getAll>>>
-export type GetAllQueryError = AxiosError<ErrorVO>
+export type GetAllQueryError = ErrorType<ErrorVO>
 
 
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAll>>,
+          TError,
+          Awaited<ReturnType<typeof getAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAll>>,
+          TError,
+          Awaited<ReturnType<typeof getAll>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
  * @summary Get all shippers
  */
 
-export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = AxiosError<ErrorVO>>(
- params: GetAllParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>, axios?: AxiosRequestConfig}
-  
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = ErrorType<ErrorVO>>(
+ params: GetAllParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAll>>, TError, TData>>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getGetAllQueryOptions(params,options)
 
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 
   query.queryKey = queryOptions.queryKey ;
 
@@ -299,36 +355,39 @@ export function useGetAll<TData = Awaited<ReturnType<typeof getAll>>, TError = A
  * @summary Create a new shipper
  */
 export const create1 = (
-    shipperRequest: ShipperRequest, options?: AxiosRequestConfig
- ): Promise<AxiosResponse<ShipperResponse>> => {
-    
-    
-    return axios.default.post(
-      `/api/v1/shippers`,
-      shipperRequest,options
-    );
-  }
+    shipperRequest: BodyType<ShipperRequest>,
+ options?: SecondParameter<typeof axiosInstanceFn>,signal?: AbortSignal
+) => {
+      
+      
+      return axiosInstanceFn<ShipperResponse>(
+      {url: `/api/v1/shippers`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: shipperRequest, signal
+    },
+      options);
+    }
+  
 
 
-
-export const getCreate1MutationOptions = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: ShipperRequest}, TContext>, axios?: AxiosRequestConfig}
-): UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: ShipperRequest}, TContext> => {
+export const getCreate1MutationOptions = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: BodyType<ShipperRequest>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+): UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: BodyType<ShipperRequest>}, TContext> => {
 
 const mutationKey = ['create1'];
-const {mutation: mutationOptions, axios: axiosOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, axios: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
       
 
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof create1>>, {data: ShipperRequest}> = (props) => {
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof create1>>, {data: BodyType<ShipperRequest>}> = (props) => {
           const {data} = props ?? {};
 
-          return  create1(data,axiosOptions)
+          return  create1(data,requestOptions)
         }
 
         
@@ -337,23 +396,23 @@ const {mutation: mutationOptions, axios: axiosOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type Create1MutationResult = NonNullable<Awaited<ReturnType<typeof create1>>>
-    export type Create1MutationBody = ShipperRequest
-    export type Create1MutationError = AxiosError<ErrorVO>
+    export type Create1MutationBody = BodyType<ShipperRequest>
+    export type Create1MutationError = ErrorType<ErrorVO>
 
     /**
  * @summary Create a new shipper
  */
-export const useCreate1 = <TError = AxiosError<ErrorVO>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: ShipperRequest}, TContext>, axios?: AxiosRequestConfig}
- ): UseMutationResult<
+export const useCreate1 = <TError = ErrorType<ErrorVO>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof create1>>, TError,{data: BodyType<ShipperRequest>}, TContext>, request?: SecondParameter<typeof axiosInstanceFn>}
+ , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof create1>>,
         TError,
-        {data: ShipperRequest},
+        {data: BodyType<ShipperRequest>},
         TContext
       > => {
 
       const mutationOptions = getCreate1MutationOptions(options);
 
-      return useMutation(mutationOptions);
+      return useMutation(mutationOptions, queryClient);
     }
     
