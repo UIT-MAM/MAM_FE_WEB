@@ -8,6 +8,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 import z from "zod";
 
 export const Route = createFileRoute("/auth/register")({
@@ -17,7 +18,16 @@ export const Route = createFileRoute("/auth/register")({
 function RouteComponent() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const registerMutation = useRegister();
+    const registerMutation = useRegister({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+            },
+            onError: () => {
+                toast.error("Đăng ký thất bại. Vui lòng thử lại.");
+            },
+        },
+    });
 
     const {
         register,

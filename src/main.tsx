@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { ToastContainer } from "react-toastify";
 import "./index.css";
 
 import { routeTree } from "./routeTree.gen.ts";
@@ -16,5 +17,6 @@ declare module "@tanstack/react-router" {
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <RouterProvider router={router} />
+        <ToastContainer />
     </StrictMode>,
 );

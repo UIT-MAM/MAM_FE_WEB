@@ -8,6 +8,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 export const Route = createFileRoute("/auth/login")({
     component: LoginPage,
@@ -16,7 +17,16 @@ export const Route = createFileRoute("/auth/login")({
 function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
 
-    const login = useLogin();
+    const login = useLogin({
+        mutation: {
+            onSuccess: () => {
+                toast.success("Đăng nhập thành công!");
+            },
+            onError: () => {
+                toast.error("Đăng nhập thất bại. Vui lòng thử lại.");
+            },
+        },
+    });
 
     const form = useForm<LoginRequestDTO>({
         resolver: zodResolver(loginBody),
